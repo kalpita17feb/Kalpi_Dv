@@ -1,0 +1,513 @@
+<apex:page title="Fitness Calendar" controller="Fitness_Calendar_Controller" action="{!populateData}">
+ 
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/themes/smoothness/jquery-ui.css" />
+    <script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.4/jquery-ui.min.js"></script>
+ 
+    <style>
+        * {margin: 0; padding: 0; box-sizing: border-box;}
+        html, body { font-family: Helvetica Nueu, Helvetica, Arial, sans-serif; }
+        section#calendar { width: 970px; overflow: hidden;}
+        time {
+            float: left;
+            width: 130px;
+            height: 130px;
+            margin: 4px;
+            font-size: 24px;
+            font-weight: bold;
+            border: 1px solid #bbbeaa; 
+            border-radius: 5px; 
+            background: #fff; 
+            position: relative; 
+        }
+        time.notmonth { background: #777; }
+        time.future { background: #b8b8b8; }
+        time input {
+            border: 1px solid #bbbeaa;
+            font-size: 18px;
+            text-align: center;
+            margin: 0px 10%;
+            width: 80%;
+            top: 40%;
+            position:  absolute;
+        }
+ 
+        .date {color: #f68b33; padding-right: 4px; text-align: right; }
+        .active {background: #bbbeaa;}
+        .active .date {color: #3a4767;}
+ 
+        header {width: 100%; overflow: hidden; padding: 8px 4px 4px;}
+        .header-section {
+            float: left;
+            width: 33%;
+            overflow: hidden;
+        }
+        .left {float: left; text-align: left;}
+        .right {float: right; text-align: right;}
+ 
+ 
+        .header-section label {font-weight: bold;}
+        .step-conversion {
+            background: #bbbeaa;
+            border-radius: 5px;
+            padding: 8px;
+            height: 100px;
+        }
+        .step-conversion h3 {
+            font-size: 16px;
+            color: #3a4767;
+            text-align: center;
+        }
+        .step-conversion input, .step-conversion select {
+            border: none;
+        }
+        .step-conversion input {width: 60px;}
+        .conversion-activity {
+            padding: 8px 0px 4px;
+        }
+        .conversion-minutes {
+            padding: 4px 0px 0px;
+        }
+        .conversion-minutes .equation {
+            float: left;
+            width: 50%;
+        }
+        .avatar {
+            float: left;
+            padding-right: 8px;
+        }
+        .fitbit-logo {padding-bottom: 8px;}
+ 
+        .month-link a {
+            color: #f68b33; 
+            padding: 4px;
+            font-size: 14px;
+            display: block;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .month-link a:hover {text-decoration: underline;}
+    </style>
+    
+ 
+    <apex:form >
+        <section id="calendar"> 
+            <header>
+                <div class="header-section">
+                    <div class="avatar">
+                        <apex:outputPanel rendered="{!IF(fbUser.avatar150 == NULL, false, true)}">
+                            <img src="{!fbUser.avatar}"/>
+                        </apex:outputPanel>
+                    </div>
+                    <div class="month-year"><strong>Month:</strong>  {!cCalendar.fcMonth.Month__c} - {!cCalendar.fcMonth.Year__c}</div>
+                    <div class="totals"></div>
+                
+                </div>
+                <div class="header-section step-conversion">
+                    <h3>Step Conversion</h3>
+                    <div class="conversion-activity">
+                   <!-- <apex:selectList value="{!activitySelected}" multiselect="false">
+                        <apex:selectOptions value="{!activityList}"></apex:selectOptions>
+                    </apex:selectList> -->
+                        <label>Activity:</label>
+                        <select id="selectConversion" onchange="calculateSteps();">
+                            <option value="0">--Bicycling--</option>
+                            <option value="100">Bicycling (leisurely, 10-11.9 mph)</option>
+                            <option value="200">Bicycling (moderate, 12-13.9 mph)</option>
+                            <option value="250">Bicycling (vigorous, 14-15.9 mph)</option>
+                            <option value="0"> </option>
+                            <option value="0">--Dancing--</option>
+                            <option value="118">Aerobic dancing, low impact</option>
+                            <option value="140">Aerobic dancing, strenuously</option>
+                            <option value="158">Dancing, choreographed</option>
+                            <option value="93">Dancing, socially</option>
+                            <option value="139">Line Dancing</option>
+                            <option value="0"> </option>
+                            <option value="0">--Gym Activities--</option>
+                            <option value="182">Aerobics (high impact)</option>
+                            <option value="125">Aerobics (low impact)</option>
+                            <option value="154">Aerobics (moderate)</option>
+                            <option value="230">Basketball, game</option>
+                            <option value="138">Basketball, playing recreational</option>
+                            <option value="213">Boxing, in a ring competitively</option>
+                            <option value="131">Boxing, non-competitive</option>
+                            <option value="178">Circuit Training</option>
+                            <option value="203">Elliptical trainer</option>
+                            <option value="89">Gymnastics</option>
+                            <option value="142">Handball, recreational</option>
+                            <option value="187">Judo</option>
+                            <option value="244">Jumping Rope, moderate/fast</option>
+                            <option value="178">Jumping Rope, slow</option>
+                            <option value="290">Karate</option>
+                            <option value="290">Kickboxing</option>
+                            <option value="101">Pilates</option>
+                            <option value="138">Racquetball</option>
+                            <option value="198">Racquetball, playing competitively</option>
+                            <option value="111">Rowing, light </option>
+                            <option value="179">Rowing, moderate </option>
+                            <option value="203">Rowing, vigorous effort</option>
+                            <option value="145">Softball</option>
+                            <option value="180">Stair climbing, moderate</option>
+                            <option value="90">Stair climbing, slow </option>
+                            <option value="267">Stair climbing, vigorous </option>
+                            <option value="6">Stretching</option>
+                            <option value="133">Swimming, leisure </option>
+                            <option value="174">Swimming, moderate effort</option>
+                            <option value="49">Swimming, treading water</option>
+                            <option value="222">Swimming, vigorous effort</option>
+                            <option value="290">Tae Kwon Do</option>
+                            <option value="8">Tai Chi</option>
+                            <option value="100">Water Aerobics</option>
+                            <option value="66">Weight lifting, light </option>
+                            <option value="87">Weight lifting, moderate </option>
+                            <option value="133">Weight lifting, vigorous</option>
+                            <option value="100">Yoga</option>
+                            <option value="0"> </option>
+                            <option value="0">--Household Activities--</option>
+                            <option value="67">Grocery Shopping</option>
+                            <option value="72">Housework, light </option>
+                            <option value="51">Housework, mopping floors</option>
+                            <option value="101">Housework, vacuuming </option>
+                            <option value="87">Housework, washing windows </option>
+                            <option value="78">Painting/papering</option>
+                            <option value="87">Washing the car</option>
+                            <option value="0"> </option>
+                            <option value="0">--Lawn and Garden--</option>
+                            <option value="133">Firewood, chopping</option>
+                            <option value="113">Firewood, sawing</option>
+                            <option value="89">Firewood, stacking</option>
+                            <option value="174">Gardening, heavy</option>
+                            <option value="73">Gardening, light </option>
+                            <option value="116">Gardening, moderate</option>
+                            <option value="96">Hoeing in a garden</option>
+                            <option value="160">Mowing</option>
+                            <option value="125">Raking leaves </option>
+                            <option value="145">Yard Work, general</option>
+                            <option value="0"> </option>
+                            <option value="0">--Miscellaneous--</option>
+                            <option value="98">Badminton</option>
+                            <option value="77">Billiards</option>
+                            <option value="87">Bowling</option>
+                            <option value="56">Fishing, from boat, sitting</option>
+                            <option value="111">Fishing, from river bank and walking</option>
+                            <option value="67">Frisbee, general playing</option>
+                            <option value="67">Grocery Shopping</option>
+                            <option value="102">Horseback riding, trotting</option>
+                            <option value="31">Horseback riding, walking leisurely</option>
+                            <option value="125">In-line skating, moderately</option>
+                            <option value="244">Jumping Rope, moderate/fast</option>
+                            <option value="178">Jumping Rope, slow</option>
+                            <option value="160">Mowing</option>
+                            <option value="151">Orienteering</option>
+                            <option value="78">Painting/papering</option>
+                            <option value="101">Pilates</option>
+                            <option value="125">Raking leaves </option>
+                            <option value="125">Rollerblading, moderately</option>
+                            <option value="278">Shoveling snow, heavy</option>
+                            <option value="133">Shoveling snow, light</option>
+                            <option value="174">Shoveling snow, moderate</option>
+                            <option value="290">Tae Kwon Do</option>
+                            <option value="8">Tai Chi</option>
+                            <option value="87">Washing the car</option>
+                            <option value="100">Yoga</option>
+                            <option value="0"> </option>
+                            <option value="0">--Outdoor Activities--</option>
+                            <option value="100">Badminton</option>
+                            <option value="111">Baseball</option>
+                            <option value="230">Basketball, game</option>
+                            <option value="138">Basketball, playing recreational</option>
+                            <option value="100">Bicycling (leisurely, 10-11.9 mph)</option>
+                            <option value="200">Bicycling (moderate, 12-13.9 mph)</option>
+                            <option value="250">Bicycling (vigorous, 14-15.9 mph)</option>
+                            <option value="100">Canoeing, leisurely</option>
+                            <option value="133">Firewood, chopping</option>
+                            <option value="113">Firewood, sawing</option>
+                            <option value="89">Firewood, stacking</option>
+                            <option value="56">Fishing, from boat, sitting</option>
+                            <option value="111">Fishing, from river bank and walking</option>
+                            <option value="67">Frisbee, general playing</option>
+                            <option value="174">Gardening, heavy</option>
+                            <option value="73">Gardening, light </option>
+                            <option value="116">Gardening, moderate</option>
+                            <option value="78">Golfing, with a cart</option>
+                            <option value="122">Golfing, without a cart </option>
+                            <option value="217">Hiking, 10-20 lb. load </option>
+                            <option value="232">Hiking, 21-42 lb. load </option>
+                            <option value="172">Hiking, general</option>
+                            <option value="102">Horseback riding, trotting</option>
+                            <option value="31">Horseback riding, walking leisurely</option>
+                            <option value="125">In-line skating, moderately</option>
+                            <option value="160">Mowing</option>
+                            <option value="151">Orienteering</option>
+                            <option value="125">Rollerblading, moderately</option>
+                            <option value="247">Running a 6 minute mile</option>
+                            <option value="222">Running a 7 minute mile</option>
+                            <option value="200">Running a 8 minute mile</option>
+                            <option value="184">Running a 9 minute mile</option>
+                            <option value="156">Running, jogging</option>
+                            <option value="278">Shoveling snow, heavy</option>
+                            <option value="133">Shoveling snow, light</option>
+                            <option value="174">Shoveling snow, moderate</option>
+                            <option value="164">Skiing, cross-country moderately</option>
+                            <option value="256">Skiing, cross-country rapidly</option>
+                            <option value="114">Skiing, cross-country slowly</option>
+                            <option value="178">Skiing, downhill moderate</option>
+                            <option value="244">Skiing, downhill rapidly</option>
+                            <option value="109">Skiing, downhill slowly</option>
+                            <option value="150">Snowboarding, light </option>
+                            <option value="182">Snowboarding, moderate </option>
+                            <option value="178">Snowshoeing</option>
+                            <option value="218">Soccer, playing competitively</option>
+                            <option value="144">Soccer, recreational</option>
+                            <option value="145">Softball</option>
+                            <option value="102">Tennis, doubles</option>
+                            <option value="178">Tennis, singles</option>
+                            <option value="232">Volleyball, game </option>
+                            <option value="87">Volleyball, leisure </option>
+                            <option value="100">Walking at a normal pace</option>
+                            <option value="87">Washing the car</option>
+                            <option value="0"> </option>
+                            <option value="0">--Running--</option>
+                            <option value="247">Running a 6 minute mile</option>
+                            <option value="222">Running a 7 minute mile</option>
+                            <option value="200">Running a 8 minute mile</option>
+                            <option value="184">Running a 9 minute mile</option>
+                            <option value="156">Running, jogging</option>
+                            <option value="100">Walking at a normal pace</option>
+                            <option value="0"> </option>
+                            <option value="0">--Sports and Games--</option>
+                            <option value="98">Badminton</option>
+                            <option value="111">Baseball</option>
+                            <option value="230">Basketball, game</option>
+                            <option value="138">Basketball, playing recreational</option>
+                            <option value="77">Billiards</option>
+                            <option value="87">Bowling</option>
+                            <option value="213">Boxing, in a ring competitively</option>
+                            <option value="131">Boxing, non-competitive</option>
+                            <option value="111">Cricket</option>
+                            <option value="133">Fencing</option>
+                            <option value="189">Football</option>
+                            <option value="78">Golfing, with a cart</option>
+                            <option value="122">Golfing, without a cart </option>
+                            <option value="89">Gymnastics</option>
+                            <option value="142">Handball, recreational</option>
+                            <option value="178">Hockey</option>
+                            <option value="162">Ice skating, competitively</option>
+                            <option value="84">Ice skating, leisurely</option>
+                            <option value="122">Ice skating, moderately</option>
+                            <option value="187">Judo</option>
+                            <option value="290">Karate</option>
+                            <option value="290">Kickboxing</option>
+                            <option value="138">Racquetball</option>
+                            <option value="198">Racquetball, playing competitively</option>
+                            <option value="203">Scuba diving</option>
+                            <option value="164">Skiing, cross-country moderately</option>
+                            <option value="256">Skiing, cross-country rapidly</option>
+                            <option value="114">Skiing, cross-country slowly</option>
+                            <option value="178">Skiing, downhill moderate</option>
+                            <option value="244">Skiing, downhill rapidly</option>
+                            <option value="109">Skiing, downhill slowly</option>
+                            <option value="150">Snowboarding, light </option>
+                            <option value="182">Snowboarding, moderate </option>
+                            <option value="218">Soccer, playing competitively</option>
+                            <option value="144">Soccer, recreational</option>
+                            <option value="145">Softball</option>
+                            <option value="348">Squash</option>
+                            <option value="290">Tae Kwon Do</option>
+                            <option value="8">Tai Chi</option>
+                            <option value="102">Tennis, doubles</option>
+                            <option value="178">Tennis, singles</option>
+                            <option value="232">Volleyball, game </option>
+                            <option value="87">Volleyball, leisure </option>
+                            <option value="222">Water Polo</option>
+                            <option value="100">Yoga</option>
+                            <option value="0"> </option>
+                            <option value="0">--Walking--</option>
+                            <option value="78">Golfing, with a cart</option>
+                            <option value="122">Golfing, without a cart </option>
+                            <option value="67">Grocery Shopping</option>
+                            <option value="217">Hiking, 10-20 lb. load </option>
+                            <option value="232">Hiking, 21-42 lb. load </option>
+                            <option value="172">Hiking, general</option>
+                            <option value="151">Orienteering</option>
+                            <option value="156">Running, jogging</option>
+                            <option value="178">Snowshoeing</option>
+                            <option value="180">Stair climbing, moderate</option>
+                            <option value="90">Stair climbing, slow </option>
+                            <option value="267">Stair climbing, vigorous </option>
+                            <option value="100">Walking at a normal pace</option>
+                            <option value="0"> </option>
+                            <option value="0">--Water--</option>
+                            <option value="100">Canoeing, leisurely</option>
+                            <option value="111">Rowing, light </option>
+                            <option value="179">Rowing, moderate </option>
+                            <option value="203">Rowing, vigorous effort</option>
+                            <option value="203">Scuba diving</option>
+                            <option value="133">Swimming, leisure </option>
+                            <option value="174">Swimming, moderate effort</option>
+                            <option value="49">Swimming, treading water</option>
+                            <option value="222">Swimming, vigorous effort</option>
+                            <option value="100">Water Aerobics</option>
+                            <option value="222">Water Polo</option>
+                            <option value="104">Water Skiing</option>
+                            <option value="0"> </option>
+                            <option value="0">--Winter--</option>
+                            <option value="89">Curling</option>
+                            <option value="178">Hockey</option>
+                            <option value="162">Ice skating, competitively</option>
+                            <option value="84">Ice skating, leisurely</option>
+                            <option value="122">Ice skating, moderately</option>
+                            <option value="278">Shoveling snow, heavy</option>
+                            <option value="133">Shoveling snow, light</option>
+                            <option value="174">Shoveling snow, moderate</option>
+                            <option value="164">Skiing, cross-country moderately</option>
+                            <option value="256">Skiing, cross-country rapidly</option>
+                            <option value="114">Skiing, cross-country slowly</option>
+                            <option value="178">Skiing, downhill moderate</option>
+                            <option value="244">Skiing, downhill rapidly</option>
+                            <option value="109">Skiing, downhill slowly</option>
+                            <option value="150">Snowboarding, light </option>
+                            <option value="182">Snowboarding, moderate </option>
+                            <option value="178">Snowshoeing</option>                        
+                        </select>
+                        
+                    </div>
+                    <div class="conversion-minutes">
+                        x <label>Minutes: </label><input type="text" value="" id="minuteConversion" onkeyup="calculateSteps();"/> = <label>Steps: </label><span id="totalConversion">0</span>
+<!--                        <input type="text" value="" disabled="true" id="totalConversion"/>-->
+                    </div>
+                </div>
+                <div class="header-section right">
+                    <div class="fitbit-logo"><!--<apex:image url="{!$Resource.fitbitlogo}" width="200" height="50"/>--></div>
+                    <div class="fitbit-refresh">
+                        <apex:outputText rendered="{!!hasSignedIntoFitbit}" >
+                            <apex:commandButton action="{!authorize}" value="Sign Into Fitbit"/><br/>
+                        </apex:outputText>
+                        <apex:outputText rendered="{!hasSignedIntoFitbit}">
+                            <apex:commandButton action="{!importFromFitbit}" value="Refresh From Fitbit"/>
+                        </apex:outputText>
+                    </div>
+                </div> 
+            </header>   
+                    
+                    
+                            
+            <apex:repeat value="{!cCalendar.customDayList}" var="customDay" id="theRepeat">
+                <time datetime="{!customDay.FormattedDate}" class="{!customDay.MonthClass}">
+                    <apex:outputText rendered="{!customDay.isMonth}"> 
+                        <div class="date">{!customDay.fcDay.Day__c}</div>
+                        <apex:outputText rendered="{!!customDay.isFuture}">
+                            <input id="{!customDay.fcDay.Id}" class="stepInput" type="text" name="steps" value="{!customDay.steps}" onfocus="this.value = '';" onblur="if(isNaN(this.value)){alert('Enter a number');this.value = '';}else{if(this.value != '' && this.value != '{!customDay.steps}'){updateDay('{!customDay.fcDay.Id}', this.value);}else{if(this.value = ''){this.value = '0';}else{this.value = '{!customDay.steps}';}}}"/>
+                        </apex:outputText>
+                    </apex:outputText>
+                    <apex:outputText rendered="{!!customDay.isMonth}">&nbsp;</apex:outputText>
+                </time>
+            </apex:repeat>
+        </section>      
+         
+        
+        <div class="month-link">
+            <apex:commandLink action="{!changeMonth}" value="{!monthText}"/>
+        </div>
+        
+    </apex:form>
+    
+    <script>
+ 
+    var totalText = "";
+ 
+    $( document ).ready(function() {
+        updateTotals();
+    }); 
+ 
+    
+    function updateDay(theId, theValue){
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.Fitness_Calendar_Controller.updateFCDay}',
+            theId,
+            theValue,
+            function(result, event) {
+                if(event.type === 'exception'){
+                    console.log("exception");
+                    console.log(event);
+                }else if(event.status){
+                    console.log('updated result:  ' + result);
+                }else{
+                    console.log(event.message);
+                }
+            }
+        );
+    }
+    
+    function changeSubmission(theId, theValue){
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.Fitness_Calendar_Controller.updateSubmission}',
+            theId,
+            theValue,
+            function(result, event) {
+                if(event.type === 'exception'){
+                    console.log("exception");
+                    console.log(event);
+                }else if(event.status){
+                    console.log('updated result:  ' + result);
+                }else{
+                    console.log(event.message);
+                }
+            }
+        );      
+    }
+    
+    $( "input[type='text'].stepInput" ).change(function() {
+        updateTotals();
+    });
+    
+    $("input[type='text'].stepInput").droppable({
+        drop: function(event, ui) {
+            console.log(ui.draggable.text());
+            $(this).val(Number(ui.draggable.text()) + Number($(this).val()));
+            updateTotals();
+            updateDay($(this).attr('id'), $(this).val());
+        }
+    }); 
+    
+    $("#totalConversion").draggable({
+        zIndex: 100, 
+            helper:function(){
+                return jQuery("<b>" + totalText + "</b>");
+            }
+        }
+    );  
+    
+    function updateTotals(){
+        var total = 0;
+        var numberOfDays = 0;
+        
+        $( "input[type='text'].stepInput" ).each(function() {
+            total = total + Number($(this).val());
+            numberOfDays++;
+        });
+        
+        var average = Math.round(total / numberOfDays);
+        $( "div.totals" ).html("<strong>Total Monthly Steps:</strong> " + addCommas(total) + "<br/><strong>Average Monthly Steps:</strong> " + addCommas(average));
+    
+    }
+    
+    function calculateSteps(){
+        totalText = (Number($( "#selectConversion" ).val()) * Number($("#minuteConversion").val()));
+        $("#totalConversion").html(totalText);
+    }
+    
+    function addCommas(nStr){
+        nStr += '';
+        x = nStr.split('.');
+        x1 = x[0];
+        x2 = x.length > 1 ? '.' + x[1] : '';
+        var rgx = /(\d+)(\d{3})/;
+        while (rgx.test(x1)) {
+            x1 = x1.replace(rgx, '$1' + ',' + '$2');
+        }
+        return x1 + x2;
+    }
+ 
+    </script>
+</apex:page>

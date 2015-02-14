@@ -1,0 +1,2 @@
+<apex:page showHeader="true" sidebar="true" controller="Fitness_Calendar_Complete_Controller" action="{!completeAuthorization}">
+</apex:page>

@@ -1,0 +1,79 @@
+<apex:page showHeader="true" sidebar="true" controller="Fitness_Calendar_Winner_Controller">
+    <style>
+        .month-link a {
+            color: #f68b33; 
+            padding: 4px;
+            font-size: 14px;
+            display: block;
+            font-weight: bold;
+            text-decoration: none; 
+        }
+        .month-link a:hover {text-decoration: underline;}
+ 
+    </style>
+ 
+    <apex:form >
+        <apex:outputPanel id="mainPanel">
+ 
+            <apex:sectionHeader title="{!month}/{!year} Winners" />
+ 
+            <p>
+                Target steps:  
+                <apex:inputText value="{!targetAverageDailySteps}" onchange="if(isNaN(this.value)){this.value = {!targetAverageDailySteps};}else{updateUserListJS(this.value);}"/>
+ 
+                <p>
+                    <apex:outputText value="{!winner}"/>
+                </p>
+            </p>
+ 
+ 
+            <apex:pageBlock title="Pick a winner">
+                <apex:pageBlockButtons location="top">
+                    <apex:commandButton value="Pick a Winner" action="{!pickWinner}" reRender="mainPanel"/>
+                    
+                </apex:pageBlockButtons>
+                <apex:pageBlockTable title="List of Users" value="{!customUserList}" var="u">
+                    <apex:column >
+                        <apex:facet name="header">Name</apex:facet>
+                        {!u.name}
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Average Daily Steps for the Month</apex:facet>
+                        {!u.averageDailySteps}
+                    </apex:column>
+                    <apex:column >
+                        <apex:facet name="header">Total Steps</apex:facet>
+                        {!u.totalMonthlySteps}
+                    </apex:column>
+                </apex:pageBlockTable>
+ 
+                <br/>
+                <br/>
+                <apex:pageBlockTable title="List of Added Users" value="{!customAddedUserList}" var="u">
+                    <apex:column >
+                        <apex:facet name="header">Added Name</apex:facet>
+                        {!u.name}
+                    </apex:column>
+                </apex:pageBlockTable>
+                
+                <p>
+                    Name:  
+                    <apex:inputText value="{!inputName}" onkeydown="if(event.keyCode == 13){addNameJS(this.value);}"/>
+                    <apex:commandLink action="{!addCustomName}" value="add"/>
+                </p>
+                
+            </apex:pageBlock>
+ 
+            <div class="month-link">
+                <apex:commandLink action="{!changeMonth}" value="{!monthText}"/>
+            </div>
+ 
+        </apex:outputPanel> 
+        <apex:actionFunction action="{!updateUserList}" name="updateUserListJS" rerender="mainPanel">
+            <apex:param name="firstParam" assignTo="{!targetAverageDailySteps}" value="" />
+        </apex:actionFunction>  
+        <apex:actionFunction action="{!addCustomName}" name="addNameJS" rerender="mainPanel">
+            <apex:param name="firstParam" assignTo="{!inputName}" value="" />
+        </apex:actionFunction>  
+    </apex:form>
+</apex:page>
